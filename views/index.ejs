@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Facture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        input, textarea, select {
+            padding: 10px; /* Ajout d'un padding interne pour créer de l'espace */
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box; /* Inclure padding et border dans la largeur totale */
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            height: 40px; /* La hauteur peut être ajustée selon vos besoins */
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .form-group {
+            margin-bottom: 5px;
+        }
+        .form-group label {
+            display: block;
+        }
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+        }
+        .form-row .form-group {
+            flex: 1;
+            margin-right: 5px;
+        }
+        .form-row .form-group:last-child {
+            margin-right: 0;
+        }
+        .items-container {
+            margin-bottom: 10px;
+        }
+        .item {
+            display: flex;
+            justify-content: space-between;
+        }
+        .item select, .item input {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .item button {
+            flex: none;
+            background-color: #dc3545;
+        }
+        .item button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Générateur de Facture</h1>
+        <form id="invoice-form">
+            <h2>Informations de l'émetteur</h2>
+            <div class="form-group">
+                <label for="client-name">Nom Prénom :</label>
+                <input type="text" id="client-name" name="clientName" required>
+            </div>
+            <div class="form-group">
+                <label for="client-address">Adresse :</label>
+                <input type="text" id="client-address" name="clientAddress" required>
+            </div>
+            <div class="form-group">
+                <label for="client-email">Email :</label>
+                <input type="email" id="client-email" name="clientEmail" required>
+            </div>
+            <div class="form-group">
+                <label for="client-phone">Téléphone :</label>
+                <input type="text" id="client-phone" name="clientPhone" required>
+            </div>
+            <div class="form-group">
+                <label for="client-siret">Numéro de SIRET :</label>
+                <input type="text" id="client-siret" name="clientSiret">
+            </div>
+            
+            <h2>Informations du destinataire</h2>
+            <div class="form-group">
+                <label for="recipient-name">Nom :</label>
+                <input type="text" id="recipient-name" name="recipientName" required>
+            </div>
+            <div class="form-group">
+                <label for="recipient-address">Adresse :</label>
+                <input type="text" id="recipient-address" name="recipientAddress" required>
+            </div>
+            <div class="form-group">
+                <label for="recipient-city">Ville :</label>
+                <input type="text" id="recipient-city" name="recipientCity" required>
+            </div>
+            <div class="form-group">
+                <label for="recipient-phone">Téléphone :</label>
+                <input type="text" id="recipient-phone" name="recipientPhone" required>
+            </div>
+            <div class="form-group">
+                <label for="recipient-email">Email :</label>
+                <input type="email" id="recipient-email" name="recipientEmail" required>
+            </div>
+            
+            <h2>Informations de la facture</h2>
+            <div class="form-group">
+                <label for="invoice-date">Date d'émission :</label>
+                <input type="date" id="invoice-date" name="invoiceDate" required>
+            </div>
+            <div class="form-group">
+                <label for="invoice-number">Numéro de Facture :</label>
+                <input type="text" id="invoice-number" name="invoiceNumber" required>
+            </div>
+            
+            <h2>Prestations</h2>
+            <div class="items-container" id="items-container">
+                <div class="item">
+                    <input type="text" name="description" placeholder="Description" required>
+                    <input type="number" name="quantity" placeholder="Quantité" required>
+                    <input type="number" name="unitPrice" placeholder="Prix unitaire HT" step="0.01" required>
+                    <button type="button" onclick="removeItem(this)">Supprimer</button>
+                </div>
+            </div>
+            <button type="button" style="margin-bottom: 20px;" onclick="addItem()">Ajouter une prestation</button>
+
+            <div class="form-group">
+                <label for="footer-text">Texte de pied de page :</label>
+                <textarea id="footer-text" name="footerText" rows="2">TVA non applicable : Article 293 B du Code Général des Impôts</textarea>
+            </div>
+
+            <div class="form-group">
+                <button type="submit">Générer la Facture</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function addItem() {
+            const itemContainer = document.getElementById('items-container');
+            const newItem = document.createElement('div');
+            newItem.classList.add('item');
+            newItem.innerHTML = `
+                <input type="text" name="description" placeholder="Description" required>
+                <input type="number" name="quantity" placeholder="Quantité" required>
+                <input type="number" name="unitPrice" placeholder="Prix unitaire HT" step="0.01" required>
+                <button type="button" onclick="removeItem(this)">Supprimer</button>
+            `;
+            itemContainer.appendChild(newItem);
+        }
+
+        function removeItem(button) {
+            button.parentElement.remove();
+        }
+
+        document.getElementById('invoice-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const items = [];
+
+            document.querySelectorAll('#items-container .item').forEach(item => {
+                items.push({
+                    description: item.querySelector('input[name="description"]').value,
+                    quantity: item.querySelector('input[name="quantity"]').value,
+                    unitPrice: item.querySelector('input[name="unitPrice"]').value
+                });
+            });
+
+            const data = {
+                clientInfo: {
+                    name: formData.get('clientName'),
+                    address: formData.get('clientAddress'),
+                    email: formData.get('clientEmail'),
+                    phone: formData.get('clientPhone'),
+                    siret: formData.get('clientSiret')
+                },
+                invoiceInfo: {
+                    date: formData.get('invoiceDate'),
+                    number: formData.get('invoiceNumber'),
+                    recipientName: formData.get('recipientName'),
+                    recipientAddress: formData.get('recipientAddress'),
+                    recipientCity: formData.get('recipientCity'),
+                    recipientPhone: formData.get('recipientPhone'),
+                    recipientEmail: formData.get('recipientEmail'),
+                    footerText: formData.get('footerText')
+                },
+                items
+            };
+
+            const response = await fetch('http://localhost:5001/generate-invoice', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `invoice_${data.invoiceInfo.number}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } else {
+                alert('Erreur lors de la génération de la facture.');
+            }
+        });
+    </script>
+</body>
+</html>
